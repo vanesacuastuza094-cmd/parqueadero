@@ -1,0 +1,101 @@
+
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ParkControl | Parqueadero</title>
+    <link rel="stylesheet" href="{% static 'crud/estilos.css' %}">
+</head>
+<body>
+    <header class="encabezado">
+        <div class="contenedor barra">
+            <a class="marca" href="{% url 'inicio' %}">
+                PARK<span>CONTROL</span>
+            </a>
+            <span>Sistema de gestión de parqueadero</span>
+        </div>
+    </header>
+
+    <main class="contenedor">
+        <section class="bienvenida">
+            <p class="subtitulo">PANEL DE ADMINISTRACIÓN</p>
+            <h1>Gestión del parqueadero</h1>
+            <p>
+                Bienvenido al sistema de control de vehículos.
+                Consulta los registros y movimientos del parqueadero.
+            </p>
+        </section>
+
+        <section class="tarjetas">
+            <article class="tarjeta">
+                <span>Clientes registrados</span>
+                <strong>{{ clientes }}</strong>
+            </article>
+
+            <article class="tarjeta">
+                <span>Vehículos registrados</span>
+                <strong>{{ vehiculos }}</strong>
+            </article>
+
+            <article class="tarjeta">
+                <span>Vehículos dentro</span>
+                <strong>{{ dentro }}</strong>
+            </article>
+
+            <article class="tarjeta">
+                <span>Tipos habilitados</span>
+                <strong>{{ tipos }}</strong>
+            </article>
+        </section>
+
+        <section class="panel">
+            <h2>Últimos movimientos</h2>
+
+            <div class="tabla-scroll">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Placa</th>
+                            <th>Ingreso</th>
+                            <th>Salida</th>
+                            <th>Estado</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for movimiento in ultimos %}
+                        <tr>
+                            <td>{{ movimiento.vehiculo.placa }}</td>
+                            <td>
+                                {{ movimiento.fecha_entrada|date:"d/m/Y H:i" }}
+                            </td>
+                            <td>
+                                {% if movimiento.fecha_salida %}
+                                    {{ movimiento.fecha_salida|date:"d/m/Y H:i" }}
+                                {% else %}
+                                    Pendiente
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if movimiento.fecha_salida %}
+                                    Finalizado
+                                {% else %}
+                                    En parqueadero
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="4" class="vacio">
+                                Todavía no hay movimientos registrados.
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </section>
+    </main>
+</body>
+</html>

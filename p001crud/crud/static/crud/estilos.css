@@ -1,0 +1,144 @@
+
+* {
+    box-sizing: border-box;
+}
+
+body {
+    margin: 0;
+    font-family: Arial, sans-serif;
+    background: #f3f6fa;
+    color: #183047;
+}
+
+.contenedor {
+    max-width: 1150px;
+    margin: auto;
+    padding: 0 24px;
+}
+
+.encabezado {
+    background: #102a43;
+    color: white;
+}
+
+.barra {
+    min-height: 78px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 20px;
+}
+
+.marca {
+    font-size: 24px;
+    font-weight: bold;
+    color: white;
+    text-decoration: none;
+}
+
+.marca span {
+    color: #40d6a4;
+}
+
+.bienvenida {
+    padding: 45px 0 30px;
+}
+
+.subtitulo {
+    color: #159477;
+    font-size: 13px;
+    font-weight: bold;
+    letter-spacing: 2px;
+}
+
+h1 {
+    font-size: 36px;
+    margin: 10px 0;
+}
+
+.bienvenida p:last-child {
+    color: #64748b;
+    line-height: 1.6;
+}
+
+.tarjetas {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 18px;
+}
+
+.tarjeta {
+    background: white;
+    border: 1px solid #e2e8f0;
+    border-radius: 14px;
+    padding: 25px;
+    box-shadow: 0 5px 15px #102a430a;
+}
+
+.tarjeta span {
+    display: block;
+    font-size: 14px;
+    color: #64748b;
+}
+
+.tarjeta strong {
+    display: block;
+    margin-top: 12px;
+    font-size: 38px;
+    color: #102a43;
+}
+
+.panel {
+    background: white;
+    border-radius: 14px;
+    margin-top: 30px;
+    padding: 25px;
+    border: 1px solid #e2e8f0;
+}
+
+.panel h2 {
+    margin-top: 0;
+}
+
+.tabla-scroll {
+    overflow-x: auto;
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+    text-align: left;
+}
+
+th, td {
+    padding: 15px;
+    border-bottom: 1px solid #e2e8f0;
+}
+
+th {
+    background: #f8fafc;
+}
+
+.vacio {
+    text-align: center;
+    color: #64748b;
+    padding: 30px;
+}
+
+@media (max-width: 800px) {
+    .tarjetas {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+@media (max-width: 450px) {
+    .tarjetas {
+        grid-template-columns: 1fr;
+    }
+
+    .barra {
+        flex-direction: column;
+        padding-top: 15px;
+        padding-bottom: 15px;
+    }
+}

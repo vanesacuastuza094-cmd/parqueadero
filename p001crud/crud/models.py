@@ -25,7 +25,7 @@ class Vehiculo(models.Model):
     estado = models.BooleanField(default=True)
 
     def __str__(self):
-        return f"{self.placa} - {self.modelo} - ¨{self.color}"
+        return f"{self.placa} - {self.marca} - {self.color}"
 
 class Cliente(models.Model):
     tipo_identificacion = models.CharField(max_length=50)
