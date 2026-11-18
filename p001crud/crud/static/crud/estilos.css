@@ -376,3 +376,12 @@ th {
         grid-template-columns: 1fr;
     }
 }
+
+
+/* Botón para editar clientes */
+.boton-editar {
+    display: inline-block;
+    padding: 7px 14px;
+    font-size: 13px;
+    white-space: nowrap;
+}

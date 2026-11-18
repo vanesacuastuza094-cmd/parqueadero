@@ -16,4 +16,10 @@ urlpatterns = [
         views.registrar_cliente,
         name="registrar_cliente"
     ),
+
+    path(
+    "clientes/editar/<int:cliente_id>/",
+    views.editar_cliente,
+    name="editar_cliente"
+),
 ]

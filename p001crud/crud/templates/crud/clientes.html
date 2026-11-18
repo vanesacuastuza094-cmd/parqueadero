@@ -1,4 +1,5 @@
 
+
 {% load static %}
 <!DOCTYPE html>
 <html lang="es">
@@ -33,28 +34,27 @@
             <p class="subtitulo">ADMINISTRACIÓN</p>
             <h1>Gestión de clientes</h1>
             <p>
-                Consulta los clientes registrados
-                en el sistema de parqueadero.
+                Consulta, registra y actualiza los clientes
+                del sistema de parqueadero.
             </p>
         </section>
 
         <section class="panel">
-            
-<div class="cabecera-panel">
-    <h2>Clientes registrados</h2>
 
-    <div class="acciones-clientes">
-        <span class="contador">
-            {{ total_clientes }} resultado(s)
-        </span>
+            <div class="cabecera-panel">
+                <h2>Clientes registrados</h2>
 
-        <a href="{% url 'registrar_cliente' %}"
-           class="boton">
-            + Nuevo cliente
-        </a>
-    </div>
-</div>
+                <div class="acciones-clientes">
+                    <span class="contador">
+                        {{ total_clientes }} resultado(s)
+                    </span>
 
+                    <a href="{% url 'registrar_cliente' %}"
+                       class="boton">
+                        + Nuevo cliente
+                    </a>
+                </div>
+            </div>
 
             <form method="get" class="formulario-busqueda">
                 <input
@@ -64,9 +64,11 @@
                     placeholder="Buscar por nombre o identificación"
                     aria-label="Buscar clientes"
                 >
+
                 <button type="submit" class="boton">
                     Buscar
                 </button>
+
                 <a class="boton boton-secundario"
                    href="{% url 'lista_clientes' %}">
                     Limpiar
@@ -83,8 +85,10 @@
                             <th>Teléfono</th>
                             <th>Dirección</th>
                             <th>Estado</th>
+                            <th>Acciones</th>
                         </tr>
                     </thead>
+
                     <tbody>
                         {% for cliente in clientes_lista %}
                         <tr>
@@ -93,6 +97,7 @@
                             <td>{{ cliente.apellido }}</td>
                             <td>{{ cliente.telefono }}</td>
                             <td>{{ cliente.direccion }}</td>
+
                             <td>
                                 {% if cliente.estado %}
                                     Activo
@@ -100,10 +105,18 @@
                                     Inactivo
                                 {% endif %}
                             </td>
+
+                            <td>
+                                <a href="{% url 'editar_cliente' cliente.pk %}"
+                                   class="boton boton-editar">
+                                    Editar
+                                </a>
+                            </td>
                         </tr>
+
                         {% empty %}
                         <tr>
-                            <td colspan="6" class="vacio">
+                            <td colspan="7" class="vacio">
                                 No se encontraron clientes.
                             </td>
                         </tr>

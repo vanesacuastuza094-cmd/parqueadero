@@ -1,9 +1,7 @@
 
-from django.shortcuts import render
+from django.shortcuts import render, redirect, get_object_or_404
 from .models import Cliente, Vehiculo, IngresoSalida, TipoVehiculo
-from django.shortcuts import redirect
 from .forms import ClienteForm
-
 
 def inicio(request):
     contexto = {
@@ -69,4 +67,27 @@ def registrar_cliente(request):
         "crud/registrar_cliente.html",
         contexto
     )
+
+
+def editar_cliente(request, cliente_id):
+    cliente = get_object_or_404(Cliente, pk=cliente_id)
+
+    if request.method == "POST":
+        formulario = ClienteForm(request.POST, instance=cliente)
+
+        if formulario.is_valid():
+            formulario.save()
+            return redirect("lista_clientes")
+    else:
+        formulario = ClienteForm(instance=cliente)
+
+    return render(
+        request,
+        "crud/editar_cliente.html",
+        {
+            "formulario": formulario,
+            "cliente": cliente,
+        }
+    )
+
 
