@@ -1,0 +1,117 @@
+
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1.0">
+    <title>Clientes | ParkControl</title>
+    <link rel="stylesheet"
+          href="{% static 'crud/estilos.css' %}">
+</head>
+<body>
+    <header class="encabezado">
+        <div class="contenedor barra">
+            <a class="marca" href="{% url 'inicio' %}">
+                PARK<span>CONTROL</span>
+            </a>
+            <nav>
+                <a class="enlace-nav" href="{% url 'inicio' %}">
+                    Inicio
+                </a>
+                <a class="enlace-nav"
+                   href="{% url 'lista_clientes' %}">
+                    Clientes
+                </a>
+            </nav>
+        </div>
+    </header>
+
+    <main class="contenedor">
+        <section class="bienvenida">
+            <p class="subtitulo">ADMINISTRACIÓN</p>
+            <h1>Gestión de clientes</h1>
+            <p>
+                Consulta los clientes registrados
+                en el sistema de parqueadero.
+            </p>
+        </section>
+
+        <section class="panel">
+            
+<div class="cabecera-panel">
+    <h2>Clientes registrados</h2>
+
+    <div class="acciones-clientes">
+        <span class="contador">
+            {{ total_clientes }} resultado(s)
+        </span>
+
+        <a href="{% url 'registrar_cliente' %}"
+           class="boton">
+            + Nuevo cliente
+        </a>
+    </div>
+</div>
+
+
+            <form method="get" class="formulario-busqueda">
+                <input
+                    type="text"
+                    name="buscar"
+                    value="{{ busqueda }}"
+                    placeholder="Buscar por nombre o identificación"
+                    aria-label="Buscar clientes"
+                >
+                <button type="submit" class="boton">
+                    Buscar
+                </button>
+                <a class="boton boton-secundario"
+                   href="{% url 'lista_clientes' %}">
+                    Limpiar
+                </a>
+            </form>
+
+            <div class="tabla-scroll">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Identificación</th>
+                            <th>Nombre</th>
+                            <th>Apellido</th>
+                            <th>Teléfono</th>
+                            <th>Dirección</th>
+                            <th>Estado</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for cliente in clientes_lista %}
+                        <tr>
+                            <td>{{ cliente.identificacion }}</td>
+                            <td>{{ cliente.nombre }}</td>
+                            <td>{{ cliente.apellido }}</td>
+                            <td>{{ cliente.telefono }}</td>
+                            <td>{{ cliente.direccion }}</td>
+                            <td>
+                                {% if cliente.estado %}
+                                    Activo
+                                {% else %}
+                                    Inactivo
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="6" class="vacio">
+                                No se encontraron clientes.
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </section>
+    </main>
+</body>
+</html>
