@@ -38,6 +38,21 @@ class PanelPrincipalTests(TestCase):
         self.assertIn("ABC123", str(vehiculo))
         self.assertIn("Renault", str(vehiculo))
 
+    
+def test_boton_gestion_clientes(self):
+    respuesta = self.client.get(reverse("inicio"))
+
+    self.assertContains(
+        respuesta,
+        reverse("lista_clientes")
+    )
+
+    self.assertContains(
+        respuesta,
+        "Gestión de clientes"
+    )
+
+
 
 class GestionClientesTests(TestCase):
 
