@@ -124,3 +124,72 @@ class VehiculoForm(forms.ModelForm):
             )
 
         return placa
+
+
+from .models import Tarifa
+
+
+class TarifaForm(forms.ModelForm):
+    MODALIDADES = [
+        ("Hora", "Por hora"),
+        ("Dia", "Por día"),
+        ("Mes", "Por mes"),
+    ]
+
+    tiempo = forms.ChoiceField(
+        choices=MODALIDADES,
+        label="Modalidad de cobro"
+    )
+
+    class Meta:
+        model = Tarifa
+        fields = [
+            "tipo_vehiculo",
+            "tiempo",
+            "valor",
+            "estado",
+        ]
+        labels = {
+            "tipo_vehiculo": "Tipo de vehículo",
+            "valor": "Valor en pesos colombianos (COP)",
+            "estado": "Tarifa activa",
+        }
+        widgets = {
+            "valor": forms.NumberInput(
+                attrs={"min": "0.01", "step": "0.01"}
+            ),
+        }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+        tipos = TipoVehiculo.objects.filter(estado=True)
+
+        if self.instance.pk:
+            tipos = (
+                tipos
+                | TipoVehiculo.objects.filter(
+                    pk=self.instance.tipo_vehiculo_id
+                )
+            ).distinct()
+
+        self.fields["tipo_vehiculo"].queryset = tipos
+
+    def clean(self):
+        datos = super().clean()
+        tipo = datos.get("tipo_vehiculo")
+        tiempo = datos.get("tiempo")
+
+        if tipo and tiempo:
+            duplicada = Tarifa.objects.filter(
+                tipo_vehiculo=tipo,
+                tiempo=tiempo
+            ).exclude(pk=self.instance.pk)
+
+            if duplicada.exists():
+                raise forms.ValidationError(
+                    "Ya existe una tarifa para este tipo "
+                    "de vehículo y modalidad."
+                )
+
+        return datos

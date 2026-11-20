@@ -1,0 +1,106 @@
+
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1.0">
+    <title>Tarifas | ParkControl</title>
+    <link rel="stylesheet"
+          href="{% static 'crud/estilos.css' %}">
+</head>
+<body>
+    <header class="encabezado">
+        <div class="contenedor barra">
+            <a class="marca" href="{% url 'inicio' %}">
+                PARK<span>CONTROL</span>
+            </a>
+            <nav>
+                <a class="enlace-nav" href="{% url 'inicio' %}">Inicio</a>
+                <a class="enlace-nav" href="{% url 'lista_clientes' %}">Clientes</a>
+                <a class="enlace-nav" href="{% url 'lista_vehiculos' %}">Vehículos</a>
+                <a class="enlace-nav" href="{% url 'lista_tarifas' %}">Tarifas</a>
+            </nav>
+        </div>
+    </header>
+
+    <main class="contenedor">
+        <section class="bienvenida">
+            <p class="subtitulo">ADMINISTRACIÓN</p>
+            <h1>Gestión de tarifas</h1>
+            <p>Consulta, registra y actualiza las tarifas del parqueadero.</p>
+        </section>
+
+        <section class="panel">
+            <div class="cabecera-panel">
+                <h2>Tarifas registradas</h2>
+
+                <div class="acciones-clientes">
+                    <span class="contador">
+                        {{ total_tarifas }} resultado(s)
+                    </span>
+                    <a href="{% url 'registrar_tarifa' %}" class="boton">
+                        + Nueva tarifa
+                    </a>
+                </div>
+            </div>
+
+            <form method="get" class="formulario-busqueda">
+                <input
+                    type="text"
+                    name="buscar"
+                    value="{{ busqueda }}"
+                    placeholder="Buscar por vehículo o modalidad"
+                    aria-label="Buscar tarifas"
+                >
+                <button type="submit" class="boton">Buscar</button>
+                <a class="boton boton-secundario"
+                   href="{% url 'lista_tarifas' %}">Limpiar</a>
+            </form>
+
+            <div class="tabla-scroll">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Tipo de vehículo</th>
+                            <th>Modalidad</th>
+                            <th>Valor (COP)</th>
+                            <th>Estado</th>
+                            <th>Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for tarifa in tarifas_lista %}
+                        <tr>
+                            <td>{{ tarifa.tipo_vehiculo.nombre }}</td>
+                            <td>{{ tarifa.tiempo }}</td>
+                            <td>$ {{ tarifa.valor|floatformat:0 }}</td>
+                            <td>
+                                {% if tarifa.estado %}
+                                    Activa
+                                {% else %}
+                                    Inactiva
+                                {% endif %}
+                            </td>
+                            <td>
+                                <a href="{% url 'editar_tarifa' tarifa.pk %}"
+                                   class="boton boton-editar">
+                                    Editar
+                                </a>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="5" class="vacio">
+                                No se encontraron tarifas.
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </section>
+    </main>
+</body>
+</html>

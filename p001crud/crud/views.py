@@ -1,7 +1,8 @@
 
 from django.shortcuts import render, redirect, get_object_or_404
-from .models import Cliente, Vehiculo, IngresoSalida, TipoVehiculo
-from .forms import ClienteForm, VehiculoForm
+from .models import Cliente, Vehiculo, IngresoSalida, TipoVehiculo, Tarifa
+from .forms import ClienteForm, VehiculoForm, TarifaForm
+
 def inicio(request):
     contexto = {
         "clientes": Cliente.objects.count(),
@@ -160,3 +161,67 @@ def editar_vehiculo(request, vehiculo_id):
     )
 
 
+def lista_tarifas(request):
+    busqueda = request.GET.get("buscar", "").strip()
+
+    tarifas = Tarifa.objects.select_related(
+        "tipo_vehiculo"
+    ).order_by("tipo_vehiculo__nombre", "tiempo")
+
+    if busqueda:
+        tarifas = tarifas.filter(
+            Q(tipo_vehiculo__nombre__icontains=busqueda)
+            | Q(tiempo__icontains=busqueda)
+        )
+
+    return render(
+        request,
+        "crud/tarifas.html",
+        {
+            "tarifas_lista": tarifas,
+            "busqueda": busqueda,
+            "total_tarifas": tarifas.count(),
+        }
+    )
+
+
+def registrar_tarifa(request):
+    if request.method == "POST":
+        formulario = TarifaForm(request.POST)
+
+        if formulario.is_valid():
+            formulario.save()
+            return redirect("lista_tarifas")
+    else:
+        formulario = TarifaForm()
+
+    return render(
+        request,
+        "crud/registrar_tarifa.html",
+        {"formulario": formulario}
+    )
+
+
+def editar_tarifa(request, tarifa_id):
+    tarifa = get_object_or_404(Tarifa, pk=tarifa_id)
+
+    if request.method == "POST":
+        formulario = TarifaForm(
+            request.POST,
+            instance=tarifa
+        )
+
+        if formulario.is_valid():
+            formulario.save()
+            return redirect("lista_tarifas")
+    else:
+        formulario = TarifaForm(instance=tarifa)
+
+    return render(
+        request,
+        "crud/editar_tarifa.html",
+        {
+            "formulario": formulario,
+            "tarifa": tarifa,
+        }
+    )

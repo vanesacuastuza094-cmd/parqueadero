@@ -42,4 +42,23 @@ urlpatterns = [
         name="editar_vehiculo"
     ),
 
+
+    path(
+        "tarifas/",
+        views.lista_tarifas,
+        name="lista_tarifas"
+    ),
+
+    path(
+        "tarifas/registrar/",
+        views.registrar_tarifa,
+        name="registrar_tarifa"
+    ),
+
+    path(
+        "tarifas/editar/<int:tarifa_id>/",
+        views.editar_tarifa,
+        name="editar_tarifa"
+    ),
+
 ]
