@@ -193,3 +193,101 @@ class TarifaForm(forms.ModelForm):
                 )
 
         return datos
+
+
+from .models import IngresoSalida, Empleado, Tarifa
+
+
+class IngresoForm(forms.Form):
+    vehiculo = forms.ModelChoiceField(
+        queryset=Vehiculo.objects.none(),
+        label="Vehículo",
+        empty_label="Seleccione un vehículo"
+    )
+
+    empleado = forms.ModelChoiceField(
+        queryset=Empleado.objects.none(),
+        label="Empleado responsable",
+        empty_label="Seleccione un empleado"
+    )
+
+    tarifa = forms.ModelChoiceField(
+        queryset=Tarifa.objects.none(),
+        label="Modalidad de cobro",
+        empty_label="Seleccione una tarifa"
+    )
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+        vehiculos_dentro = IngresoSalida.objects.filter(
+            fecha_salida__isnull=True
+        ).values_list("vehiculo_id", flat=True)
+
+        self.fields["vehiculo"].queryset = (
+            Vehiculo.objects.filter(
+                estado=True,
+                cliente__estado=True,
+                tipo_vehiculo__estado=True
+            )
+            .exclude(pk__in=vehiculos_dentro)
+            .select_related("cliente", "tipo_vehiculo")
+            .order_by("placa")
+        )
+
+        self.fields["empleado"].queryset = (
+            Empleado.objects.filter(estado=True)
+            .order_by("nombre", "apellido")
+        )
+
+        self.fields["tarifa"].queryset = (
+            Tarifa.objects.filter(
+                estado=True,
+                tipo_vehiculo__estado=True
+            )
+            .select_related("tipo_vehiculo")
+            .order_by("tipo_vehiculo__nombre", "tiempo")
+        )
+
+        self.fields["vehiculo"].label_from_instance = (
+            lambda obj: (
+                f"{obj.placa} - {obj.tipo_vehiculo.nombre} - "
+                f"{obj.cliente.nombre} {obj.cliente.apellido}"
+            )
+        )
+
+        self.fields["empleado"].label_from_instance = (
+            lambda obj: f"{obj.nombre} {obj.apellido}"
+        )
+
+        self.fields["tarifa"].label_from_instance = (
+            lambda obj: (
+                f"{obj.tipo_vehiculo.nombre} - "
+                f"{obj.tiempo} - ${obj.valor:,.0f}"
+            )
+        )
+
+    def clean(self):
+        datos = super().clean()
+
+        vehiculo = datos.get("vehiculo")
+        tarifa = datos.get("tarifa")
+
+        if vehiculo and tarifa:
+            if vehiculo.tipo_vehiculo_id != tarifa.tipo_vehiculo_id:
+                raise forms.ValidationError(
+                    "La tarifa seleccionada no corresponde "
+                    "al tipo de vehículo."
+                )
+
+        if vehiculo:
+            if IngresoSalida.objects.filter(
+                vehiculo=vehiculo,
+                fecha_salida__isnull=True
+            ).exists():
+                raise forms.ValidationError(
+                    "Este vehículo ya se encuentra dentro "
+                    "del parqueadero."
+                )
+
+        return datos

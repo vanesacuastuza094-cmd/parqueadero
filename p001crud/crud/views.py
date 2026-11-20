@@ -2,6 +2,10 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from .models import Cliente, Vehiculo, IngresoSalida, TipoVehiculo, Tarifa
 from .forms import ClienteForm, VehiculoForm, TarifaForm
+from django.utils import timezone
+from django.db import transaction
+from .models import Empleado, Tarifa
+from .forms import IngresoForm
 
 def inicio(request):
     contexto = {
@@ -224,4 +228,83 @@ def editar_tarifa(request, tarifa_id):
             "formulario": formulario,
             "tarifa": tarifa,
         }
+    )
+
+
+def lista_ingresos(request):
+    busqueda = request.GET.get("buscar", "").strip()
+
+    ingresos = IngresoSalida.objects.filter(
+        fecha_salida__isnull=True
+    ).select_related(
+        "vehiculo",
+        "cliente",
+        "empleado",
+        "tarifa"
+    ).order_by("-fecha_entrada")
+
+    if busqueda:
+        ingresos = ingresos.filter(
+            Q(vehiculo__placa__icontains=busqueda)
+            | Q(numero_recibo__icontains=busqueda)
+            | Q(cliente__nombre__icontains=busqueda)
+            | Q(cliente__apellido__icontains=busqueda)
+        )
+
+    return render(
+        request,
+        "crud/ingresos.html",
+        {
+            "ingresos_lista": ingresos,
+            "busqueda": busqueda,
+            "total_ingresos": ingresos.count(),
+        }
+    )
+
+
+def registrar_ingreso(request):
+    if request.method == "POST":
+        formulario = IngresoForm(request.POST)
+
+        if formulario.is_valid():
+            vehiculo = formulario.cleaned_data["vehiculo"]
+            empleado = formulario.cleaned_data["empleado"]
+            tarifa = formulario.cleaned_data["tarifa"]
+
+            with transaction.atomic():
+                # Bloquear el vehículo durante el registro.
+                vehiculo = Vehiculo.objects.select_for_update().get(
+                    pk=vehiculo.pk
+                )
+
+                ya_dentro = IngresoSalida.objects.filter(
+                    vehiculo=vehiculo,
+                    fecha_salida__isnull=True
+                ).exists()
+
+                if ya_dentro:
+                    formulario.add_error(
+                        None,
+                        "Este vehículo ya tiene un ingreso activo."
+                    )
+                else:
+                    IngresoSalida.objects.create(
+                        vehiculo=vehiculo,
+                        empleado=empleado,
+                        cliente=vehiculo.cliente,
+                        tarifa=tarifa,
+                        fecha_entrada=timezone.now(),
+                        tiempo_total=0,
+                        total_pago=0,
+                        estado=True
+                    )
+
+                    return redirect("lista_ingresos")
+    else:
+        formulario = IngresoForm()
+
+    return render(
+        request,
+        "crud/registrar_ingreso.html",
+        {"formulario": formulario}
     )

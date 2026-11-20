@@ -74,19 +74,72 @@ class Usuario(models.Model):
     def __str__(self):
         return f"{self.usuario} - {self.empleado}"
 
+
 class IngresoSalida(models.Model):
-    vehiculo = models.ForeignKey(Vehiculo, on_delete=models.CASCADE)
-    empleado = models.ForeignKey(Empleado, on_delete=models.CASCADE)
-    cliente = models.ForeignKey(Cliente, on_delete=models.CASCADE)
-    tarifa = models.ForeignKey(Tarifa, on_delete=models.CASCADE)
+    vehiculo = models.ForeignKey(
+        Vehiculo,
+        on_delete=models.CASCADE
+    )
+
+    empleado = models.ForeignKey(
+        Empleado,
+        on_delete=models.CASCADE
+    )
+
+    cliente = models.ForeignKey(
+        Cliente,
+        on_delete=models.CASCADE
+    )
+
+    tarifa = models.ForeignKey(
+        Tarifa,
+        on_delete=models.CASCADE
+    )
 
     fecha_entrada = models.DateTimeField()
-    fecha_salida = models.DateTimeField(null=True, blank=True)
-    tiempo_total = models.IntegerField()
-    numero_recibo = models.CharField(max_length=50)
-    total_pago = models.DecimalField(max_digits=10, decimal_places=2)
-    forma_pago_descripcion = models.CharField(max_length=100)
+
+    fecha_salida = models.DateTimeField(
+        null=True,
+        blank=True
+    )
+
+    tiempo_total = models.IntegerField(default=0)
+
+    numero_recibo = models.CharField(
+        max_length=50,
+        blank=True,
+        unique=True
+    )
+
+    total_pago = models.DecimalField(
+        max_digits=10,
+        decimal_places=2,
+        default=0
+    )
+
+    forma_pago_descripcion = models.CharField(
+        max_length=100,
+        blank=True
+    )
+
     estado = models.BooleanField(default=True)
 
+    def save(self, *args, **kwargs):
+        # Primero se guarda el registro para obtener su ID.
+        super().save(*args, **kwargs)
+
+        # Generar el número de recibo automáticamente.
+        if not self.numero_recibo:
+            self.numero_recibo = f"REC-{self.pk:06d}"
+
+            type(self).objects.filter(pk=self.pk).update(
+                numero_recibo=self.numero_recibo
+            )
+
     def __str__(self):
-        return f"Registro {self.id} {self.numero_recibo} {self.vehiculo} {self.total_pago} {self.forma_pago_descripcion}"
+        return (
+            f"Registro {self.id} - "
+            f"{self.numero_recibo} - "
+            f"{self.vehiculo.placa}"
+        )
+

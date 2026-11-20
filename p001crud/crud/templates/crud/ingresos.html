@@ -1,0 +1,131 @@
+
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1.0">
+    <title>Ingresos | ParkControl</title>
+    <link rel="stylesheet"
+          href="{% static 'crud/estilos.css' %}">
+</head>
+<body>
+<header class="encabezado">
+    <div class="contenedor barra">
+        <a class="marca" href="{% url 'inicio' %}">
+            PARK<span>CONTROL</span>
+        </a>
+        <nav>
+            <a class="enlace-nav" href="{% url 'inicio' %}">
+                Inicio
+            </a>
+            <a class="enlace-nav" href="{% url 'lista_clientes' %}">
+                Clientes
+            </a>
+            <a class="enlace-nav" href="{% url 'lista_vehiculos' %}">
+                Vehículos
+            </a>
+            <a class="enlace-nav" href="{% url 'lista_tarifas' %}">
+                Tarifas
+            </a>
+            <a class="enlace-nav" href="{% url 'lista_ingresos' %}">
+                Ingresos
+            </a>
+        </nav>
+    </div>
+</header>
+
+<main class="contenedor">
+    <section class="bienvenida">
+        <p class="subtitulo">CONTROL DEL PARQUEADERO</p>
+        <h1>Registro de ingresos</h1>
+        <p>
+            Consulta los vehículos que actualmente
+            se encuentran dentro del parqueadero.
+        </p>
+    </section>
+
+    <section class="panel">
+        <div class="cabecera-panel">
+            <h2>Vehículos en parqueadero</h2>
+
+            <div class="acciones-clientes">
+                <span class="contador">
+                    {{ total_ingresos }} resultado(s)
+                </span>
+
+                <a href="{% url 'registrar_ingreso' %}"
+                   class="boton">
+                    + Registrar ingreso
+                </a>
+            </div>
+        </div>
+
+        <form method="get" class="formulario-busqueda">
+            <input
+                type="text"
+                name="buscar"
+                value="{{ busqueda }}"
+                placeholder="Buscar placa, propietario o recibo"
+                aria-label="Buscar ingresos"
+            >
+
+            <button type="submit" class="boton">
+                Buscar
+            </button>
+
+            <a href="{% url 'lista_ingresos' %}"
+               class="boton boton-secundario">
+                Limpiar
+            </a>
+        </form>
+
+        <div class="tabla-scroll">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Recibo</th>
+                        <th>Placa</th>
+                        <th>Propietario</th>
+                        <th>Modalidad</th>
+                        <th>Fecha de ingreso</th>
+                        <th>Empleado</th>
+                        <th>Estado</th>
+                    </tr>
+                </thead>
+
+                <tbody>
+                    {% for ingreso in ingresos_lista %}
+                    <tr>
+                        <td>{{ ingreso.numero_recibo }}</td>
+                        <td>{{ ingreso.vehiculo.placa }}</td>
+                        <td>
+                            {{ ingreso.cliente.nombre }}
+                            {{ ingreso.cliente.apellido }}
+                        </td>
+                        <td>{{ ingreso.tarifa.tiempo }}</td>
+                        <td>
+                            {{ ingreso.fecha_entrada|date:"d/m/Y H:i" }}
+                        </td>
+                        <td>
+                            {{ ingreso.empleado.nombre }}
+                            {{ ingreso.empleado.apellido }}
+                        </td>
+                        <td>En parqueadero</td>
+                    </tr>
+
+                    {% empty %}
+                    <tr>
+                        <td colspan="7" class="vacio">
+                            No hay vehículos dentro del parqueadero.
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </section>
+</main>
+</body>
+</html>

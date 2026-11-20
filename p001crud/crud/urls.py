@@ -61,4 +61,17 @@ urlpatterns = [
         name="editar_tarifa"
     ),
 
+
+    path(
+        "ingresos/",
+        views.lista_ingresos,
+        name="lista_ingresos"
+    ),
+
+    path(
+        "ingresos/registrar/",
+        views.registrar_ingreso,
+        name="registrar_ingreso"
+    ),
+
 ]
