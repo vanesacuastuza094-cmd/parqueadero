@@ -22,4 +22,24 @@ urlpatterns = [
     views.editar_cliente,
     name="editar_cliente"
 ),
+
+
+    path(
+        "vehiculos/",
+        views.lista_vehiculos,
+        name="lista_vehiculos"
+    ),
+
+    path(
+        "vehiculos/registrar/",
+        views.registrar_vehiculo,
+        name="registrar_vehiculo"
+    ),
+
+    path(
+        "vehiculos/editar/<int:vehiculo_id>/",
+        views.editar_vehiculo,
+        name="editar_vehiculo"
+    ),
+
 ]

@@ -1,0 +1,109 @@
+
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1.0">
+
+    <title>Editar vehículo | ParkControl</title>
+
+    <link rel="stylesheet"
+          href="{% static 'crud/estilos.css' %}">
+</head>
+<body>
+
+<header class="encabezado">
+    <div class="contenedor barra">
+        <a href="{% url 'inicio' %}" class="marca">
+            PARK<span>CONTROL</span>
+        </a>
+
+        <nav>
+            <a class="enlace-nav" href="{% url 'inicio' %}">
+                Inicio
+            </a>
+
+            <a class="enlace-nav"
+               href="{% url 'lista_clientes' %}">
+                Clientes
+            </a>
+
+            <a class="enlace-nav"
+               href="{% url 'lista_vehiculos' %}">
+                Vehículos
+            </a>
+        </nav>
+    </div>
+</header>
+
+<main class="contenedor">
+
+    <section class="bienvenida">
+        <p class="subtitulo">GESTIÓN DE VEHÍCULOS</p>
+        <h1>Editar vehículo</h1>
+        <p>
+            Modifica los datos del vehículo
+            {{ vehiculo.placa }} y guarda los cambios.
+        </p>
+    </section>
+
+    <section class="panel panel-formulario">
+
+        <h2>Información del vehículo</h2>
+
+        <form method="post" class="formulario-cliente">
+            {% csrf_token %}
+
+            {% if formulario.non_field_errors %}
+                <div class="errores">
+                    {{ formulario.non_field_errors }}
+                </div>
+            {% endif %}
+
+            {% for campo in formulario %}
+
+                <div class="grupo-campo">
+
+                    {% if campo.name == "estado" %}
+                        <label for="{{ campo.id_for_label }}">
+                            Vehículo activo
+                        </label>
+                    {% else %}
+                        <label for="{{ campo.id_for_label }}">
+                            {{ campo.label }}
+                        </label>
+                    {% endif %}
+
+                    {{ campo }}
+
+                    {% if campo.errors %}
+                        <div class="errores">
+                            {{ campo.errors }}
+                        </div>
+                    {% endif %}
+
+                </div>
+
+            {% endfor %}
+
+            <div class="acciones-formulario">
+
+                <button type="submit" class="boton">
+                    Guardar cambios
+                </button>
+
+                <a href="{% url 'lista_vehiculos' %}"
+                   class="boton boton-secundario">
+                    Cancelar
+                </a>
+
+            </div>
+        </form>
+
+    </section>
+</main>
+
+</body>
+</html>

@@ -6,7 +6,7 @@ class TipoVehiculo(models.Model):
     estado = models.BooleanField(default=True)
 
     def __str__(self):
-        return f"{self.nombre} - {self.descripcion} - ¨{self.estado}"
+        return self.nombre
 
 class Tarifa(models.Model):
     tipo_vehiculo = models.ForeignKey(TipoVehiculo, on_delete=models.CASCADE)
@@ -17,15 +17,30 @@ class Tarifa(models.Model):
     def __str__(self):
         return f"{self.tipo_vehiculo} - {self.valor}"
 
+
+
 class Vehiculo(models.Model):
     placa = models.CharField(max_length=10, unique=True)
-    tipo_vehiculo = models.ForeignKey(TipoVehiculo, on_delete=models.CASCADE)
+
+    tipo_vehiculo = models.ForeignKey(
+        TipoVehiculo,
+        on_delete=models.CASCADE
+    )
+
+    cliente = models.ForeignKey(
+    "Cliente",
+    on_delete=models.PROTECT,
+    related_name="vehiculos"
+)
+
     marca = models.CharField(max_length=50)
     color = models.CharField(max_length=50)
     estado = models.BooleanField(default=True)
 
     def __str__(self):
         return f"{self.placa} - {self.marca} - {self.color}"
+
+
 
 class Cliente(models.Model):
     tipo_identificacion = models.CharField(max_length=50)

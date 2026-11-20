@@ -51,21 +51,27 @@
         </section>
 
 <!-- Accesos rápidos del parqueadero -->
-<section class="accesos">
-    <h2>Accesos rápidos</h2>
-    <p>Selecciona el módulo que deseas administrar.</p>
 
-    <div class="contenedor-accesos">
+<div class="contenedor-accesos">
 
-        <a href="{% url 'lista_clientes' %}"
-           class="boton-acceso">
-            <span class="icono-acceso">👥</span>
-            <strong>Gestión de clientes</strong>
-            <span>Consultar y buscar clientes</span>
-            <span class="texto-entrar">Ingresar →</span>
-        </a>
+    <a href="{% url 'lista_clientes' %}"
+       class="boton-acceso">
+        <span class="icono-acceso">👥</span>
+        <strong>Gestión de clientes</strong>
+        <span>Consultar y buscar clientes</span>
+        <span class="texto-entrar">Ingresar →</span>
+    </a>
 
-    </div>
+    <a href="{% url 'lista_vehiculos' %}"
+       class="boton-acceso">
+        <span class="icono-acceso">🚗</span>
+        <strong>Gestión de vehículos</strong>
+        <span>Consultar, registrar y editar vehículos</span>
+        <span class="texto-entrar">Ingresar →</span>
+    </a>
+
+</div>
+
 </section>
 
         <section class="panel">

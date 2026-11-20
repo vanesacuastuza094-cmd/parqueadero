@@ -61,3 +61,66 @@ class ClienteForm(forms.ModelForm):
             )
 
         return identificacion
+
+from .models import Vehiculo, Cliente, TipoVehiculo
+
+
+class VehiculoForm(forms.ModelForm):
+    class Meta:
+        model = Vehiculo
+        fields = [
+            "placa",
+            "tipo_vehiculo",
+            "cliente",
+            "marca",
+            "color",
+            "estado",
+        ]
+        labels = {
+            "placa": "Placa",
+            "tipo_vehiculo": "Tipo de vehículo",
+            "cliente": "Propietario",
+            "marca": "Marca",
+            "color": "Color",
+            "estado": "Vehículo activo",
+        }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+        self.fields["tipo_vehiculo"].queryset = (
+            TipoVehiculo.objects.filter(estado=True)
+        )
+
+        self.fields["cliente"].queryset = (
+            Cliente.objects.filter(estado=True)
+        )
+
+        # Permitir conservar el propietario o tipo actual al editar.
+        if self.instance.pk:
+            self.fields["cliente"].queryset = (
+                Cliente.objects.filter(estado=True)
+                | Cliente.objects.filter(pk=self.instance.cliente_id)
+            ).distinct()
+
+            self.fields["tipo_vehiculo"].queryset = (
+                TipoVehiculo.objects.filter(estado=True)
+                | TipoVehiculo.objects.filter(
+                    pk=self.instance.tipo_vehiculo_id
+                )
+            ).distinct()
+
+        for campo in self.fields.values():
+            campo.widget.attrs["class"] = "form-control"
+
+    def clean_placa(self):
+        placa = self.cleaned_data["placa"].strip().upper()
+
+        if Vehiculo.objects.filter(placa__iexact=placa).exclude(
+            pk=self.instance.pk
+        ).exists():
+            raise forms.ValidationError(
+                "Ya existe un vehículo registrado con esta placa."
+            )
+
+        return placa

@@ -1,0 +1,146 @@
+
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1.0">
+    <title>Vehículos | ParkControl</title>
+    <link rel="stylesheet"
+          href="{% static 'crud/estilos.css' %}">
+</head>
+<body>
+    <header class="encabezado">
+        <div class="contenedor barra">
+            <a class="marca" href="{% url 'inicio' %}">
+                PARK<span>CONTROL</span>
+            </a>
+
+            <nav>
+                <a class="enlace-nav" href="{% url 'inicio' %}">
+                    Inicio
+                </a>
+                <a class="enlace-nav"
+                   href="{% url 'lista_clientes' %}">
+                    Clientes
+                </a>
+                <a class="enlace-nav"
+                   href="{% url 'lista_vehiculos' %}">
+                    Vehículos
+                </a>
+            </nav>
+        </div>
+    </header>
+
+    <main class="contenedor">
+        <section class="bienvenida">
+            <p class="subtitulo">ADMINISTRACIÓN</p>
+
+            <h1>Gestión de vehículos</h1>
+
+            <p>
+                Consulta, registra y actualiza los vehículos
+                del sistema de parqueadero.
+            </p>
+        </section>
+
+        <section class="panel">
+
+            <div class="cabecera-panel">
+                <h2>Vehículos registrados</h2>
+
+                <div class="acciones-clientes">
+                    <span class="contador">
+                        {{ total_vehiculos }} resultado(s)
+                    </span>
+
+                    <a href="{% url 'registrar_vehiculo' %}"
+                       class="boton">
+                        + Nuevo vehículo
+                    </a>
+                </div>
+            </div>
+
+            <form method="get" class="formulario-busqueda">
+                <input
+                    type="text"
+                    name="buscar"
+                    value="{{ busqueda }}"
+                    placeholder="Buscar por placa, marca o propietario"
+                    aria-label="Buscar vehículos"
+                >
+
+                <button type="submit" class="boton">
+                    Buscar
+                </button>
+
+                <a class="boton boton-secundario"
+                   href="{% url 'lista_vehiculos' %}">
+                    Limpiar
+                </a>
+            </form>
+
+            <div class="tabla-scroll">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Placa</th>
+                            <th>Tipo</th>
+                            <th>Propietario</th>
+                            <th>Marca</th>
+                            <th>Color</th>
+                            <th>Estado</th>
+                            <th>Acciones</th>
+                        </tr>
+                    </thead>
+
+                    <tbody>
+                        {% for vehiculo in vehiculos_lista %}
+                        <tr>
+                            <td>{{ vehiculo.placa }}</td>
+
+                            <td>
+                                {{ vehiculo.tipo_vehiculo.nombre }}
+                            </td>
+
+                            <td>
+                                {{ vehiculo.cliente.nombre }}
+                                {{ vehiculo.cliente.apellido }}
+                            </td>
+
+                            <td>{{ vehiculo.marca }}</td>
+
+                            <td>{{ vehiculo.color }}</td>
+
+                            <td>
+                                {% if vehiculo.estado %}
+                                    Activo
+                                {% else %}
+                                    Inactivo
+                                {% endif %}
+                            </td>
+
+                            <td>
+                                <a href="{% url 'editar_vehiculo' vehiculo.pk %}"
+                                   class="boton boton-editar">
+                                    Editar
+                                </a>
+                            </td>
+                        </tr>
+
+                        {% empty %}
+                        <tr>
+                            <td colspan="7" class="vacio">
+                                No se encontraron vehículos.
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+
+        </section>
+    </main>
+</body>
+</html>
