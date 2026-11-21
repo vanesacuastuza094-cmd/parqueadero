@@ -385,3 +385,43 @@ th {
     font-size: 13px;
     white-space: nowrap;
 }
+
+
+/* Encabezado: usuario y cierre de sesión */
+
+.acciones-encabezado {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 18px;
+    flex-wrap: wrap;
+}
+
+.usuario-actual {
+    color: #ffffff;
+    font-size: 14px;
+    font-weight: 500;
+}
+
+.boton-cerrar-sesion {
+    background-color: #dc3545;
+    color: #ffffff;
+    border: none;
+    padding: 10px 16px;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+.boton-cerrar-sesion:hover {
+    background-color: #b02a37;
+}
+
+@media (max-width: 768px) {
+    .acciones-encabezado {
+        gap: 10px;
+        justify-content: flex-start;
+    }
+}

@@ -1,4 +1,5 @@
 from django.db import models
+from django.conf import settings
 
 class TipoVehiculo(models.Model):
     nombre = models.CharField(max_length=100)
@@ -55,6 +56,15 @@ class Cliente(models.Model):
         return f"{self.nombre} - {self.apellido} - ¨{self.identificacion}"
 
 class Empleado(models.Model):
+
+    usuario_django = models.OneToOneField(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="empleado_parkcontrol"
+    )
+
     identificacion = models.CharField(max_length=50, unique=True)
     nombre = models.CharField(max_length=100)
     apellido = models.CharField(max_length=100)

@@ -9,7 +9,16 @@ from .forms import IngresoForm
 from decimal import Decimal
 from datetime import timedelta
 from .forms import SalidaForm
+from django.contrib.admin.views.decorators import staff_member_required
+from django.contrib.auth import login, logout
+from django.contrib.auth.decorators import login_required
+from django.contrib.auth.models import User
+from django.db import transaction
+from django.views.decorators.http import require_POST
 
+from .forms import CuentaEmpleadoForm, InicioSesionForm
+
+@login_required
 def inicio(request):
     contexto = {
         "clientes": Cliente.objects.count(),
@@ -30,7 +39,7 @@ def inicio(request):
 
 from django.db.models import Q
 
-
+@login_required
 def lista_clientes(request):
     busqueda = request.GET.get("buscar", "").strip()
 
@@ -52,7 +61,7 @@ def lista_clientes(request):
     return render(request, "crud/clientes.html", contexto)
 
 
-
+@login_required
 def registrar_cliente(request):
 
     if request.method == "POST":
@@ -75,7 +84,7 @@ def registrar_cliente(request):
         contexto
     )
 
-
+@login_required
 def editar_cliente(request, cliente_id):
     cliente = get_object_or_404(Cliente, pk=cliente_id)
 
@@ -97,7 +106,7 @@ def editar_cliente(request, cliente_id):
         }
     )
 
-
+@login_required
 def lista_vehiculos(request):
     busqueda = request.GET.get("buscar", "").strip()
 
@@ -125,7 +134,7 @@ def lista_vehiculos(request):
         }
     )
 
-
+@login_required
 def registrar_vehiculo(request):
     if request.method == "POST":
         formulario = VehiculoForm(request.POST)
@@ -142,7 +151,7 @@ def registrar_vehiculo(request):
         {"formulario": formulario}
     )
 
-
+@login_required
 def editar_vehiculo(request, vehiculo_id):
     vehiculo = get_object_or_404(Vehiculo, pk=vehiculo_id)
 
@@ -167,7 +176,7 @@ def editar_vehiculo(request, vehiculo_id):
         }
     )
 
-
+@login_required
 def lista_tarifas(request):
     busqueda = request.GET.get("buscar", "").strip()
 
@@ -191,7 +200,7 @@ def lista_tarifas(request):
         }
     )
 
-
+@login_required
 def registrar_tarifa(request):
     if request.method == "POST":
         formulario = TarifaForm(request.POST)
@@ -208,7 +217,7 @@ def registrar_tarifa(request):
         {"formulario": formulario}
     )
 
-
+@login_required
 def editar_tarifa(request, tarifa_id):
     tarifa = get_object_or_404(Tarifa, pk=tarifa_id)
 
@@ -233,7 +242,7 @@ def editar_tarifa(request, tarifa_id):
         }
     )
 
-
+@login_required
 def lista_ingresos(request):
     busqueda = request.GET.get("buscar", "").strip()
 
@@ -264,7 +273,7 @@ def lista_ingresos(request):
         }
     )
 
-
+@login_required
 def registrar_ingreso(request):
     if request.method == "POST":
         formulario = IngresoForm(request.POST)
@@ -311,7 +320,6 @@ def registrar_ingreso(request):
         "crud/registrar_ingreso.html",
         {"formulario": formulario}
     )
-
 
 def calcular_cobro(ingreso, fecha_salida=None):
     """
@@ -361,7 +369,7 @@ def calcular_cobro(ingreso, fecha_salida=None):
         "fecha_salida": fecha_salida,
     }
 
-
+@login_required
 def lista_salidas(request):
     busqueda = request.GET.get("buscar", "").strip()
 
@@ -391,7 +399,7 @@ def lista_salidas(request):
         }
     )
 
-
+@login_required
 def registrar_salida(request, ingreso_id):
     ingreso = get_object_or_404(
         IngresoSalida.objects.select_related(
@@ -455,7 +463,7 @@ def registrar_salida(request, ingreso_id):
         }
     )
 
-
+@login_required
 def detalle_salida(request, ingreso_id):
     ingreso = get_object_or_404(
         IngresoSalida.objects.select_related(
@@ -482,7 +490,7 @@ def detalle_salida(request, ingreso_id):
         }
     )
 
-
+@login_required
 def lista_empleados(request):
     busqueda = request.GET.get("buscar", "").strip()
 
@@ -509,7 +517,7 @@ def lista_empleados(request):
         }
     )
 
-
+@login_required
 def registrar_empleado(request):
     if request.method == "POST":
         formulario = EmpleadoForm(request.POST)
@@ -526,7 +534,7 @@ def registrar_empleado(request):
         {"formulario": formulario}
     )
 
-
+@login_required
 def editar_empleado(request, empleado_id):
     empleado = get_object_or_404(
         Empleado,
@@ -553,3 +561,86 @@ def editar_empleado(request, empleado_id):
             "empleado": empleado,
         }
     )
+
+def iniciar_sesion(request):
+    if request.user.is_authenticated:
+        return redirect("inicio")
+
+    if request.method == "POST":
+        formulario = InicioSesionForm(
+            request,
+            data=request.POST
+        )
+
+        if formulario.is_valid():
+            usuario = formulario.get_user()
+
+            try:
+                empleado = usuario.empleado_parkcontrol
+            except Empleado.DoesNotExist:
+                formulario.add_error(
+                    None,
+                    "Este usuario no tiene un empleado asociado."
+                )
+            else:
+                if not empleado.estado:
+                    formulario.add_error(
+                        None,
+                        "La cuenta del empleado está inactiva."
+                    )
+                else:
+                    login(request, usuario)
+                    return redirect("inicio")
+    else:
+        formulario = InicioSesionForm(request)
+
+    return render(
+        request,
+        "crud/login.html",
+        {"formulario": formulario}
+    )
+
+
+@require_POST
+def cerrar_sesion(request):
+    logout(request)
+    return redirect("iniciar_sesion")
+
+
+@staff_member_required(login_url="iniciar_sesion")
+def crear_cuenta_empleado(request):
+    if request.method == "POST":
+        formulario = CuentaEmpleadoForm(request.POST)
+
+        if formulario.is_valid():
+            with transaction.atomic():
+                empleado = Empleado.objects.select_for_update().get(
+                    pk=formulario.cleaned_data["empleado"].pk
+                )
+
+                if empleado.usuario_django_id:
+                    formulario.add_error(
+                        "empleado",
+                        "Este empleado ya tiene una cuenta."
+                    )
+                else:
+                    usuario = User.objects.create_user(
+                        username=formulario.cleaned_data["username"],
+                        password=formulario.cleaned_data["password"]
+                    )
+
+                    empleado.usuario_django = usuario
+                    empleado.save(
+                        update_fields=["usuario_django"]
+                    )
+
+                    return redirect("lista_empleados")
+    else:
+        formulario = CuentaEmpleadoForm()
+
+    return render(
+        request,
+        "crud/crear_cuenta_empleado.html",
+        {"formulario": formulario}
+    )
+

@@ -42,17 +42,24 @@
         <div class="cabecera-panel">
             <h2>Empleados registrados</h2>
 
-            <div class="acciones-clientes">
-                <span class="contador">
-                    {{ total_empleados }} resultado(s)
-                </span>
+            
+<div class="acciones-clientes">
+    <span class="contador">
+        {{ total_empleados }} resultado(s)
+    </span>
 
-                <a href="{% url 'registrar_empleado' %}"
-                   class="boton">
-                    + Nuevo empleado
-                </a>
-            </div>
-        </div>
+    <a href="{% url 'registrar_empleado' %}"
+       class="boton">
+        + Nuevo empleado
+    </a>
+
+    {% if request.user.is_staff %}
+    <a href="{% url 'crear_cuenta_empleado' %}"
+       class="boton boton-secundario">
+        + Crear cuenta
+    </a>
+    {% endif %}
+</div>
 
         <form method="get" class="formulario-busqueda">
             <input

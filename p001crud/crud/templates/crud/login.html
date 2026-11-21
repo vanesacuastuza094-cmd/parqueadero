@@ -1,0 +1,68 @@
+
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1.0">
+    <title>Iniciar sesión | ParkControl</title>
+    <link rel="stylesheet"
+          href="{% static 'crud/estilos.css' %}">
+</head>
+<body>
+
+<header class="encabezado">
+    <div class="contenedor barra">
+        <a class="marca" href="{% url 'iniciar_sesion' %}">
+            PARK<span>CONTROL</span>
+        </a>
+    </div>
+</header>
+
+<main class="contenedor">
+    <section class="bienvenida">
+        <p class="subtitulo">ACCESO AL SISTEMA</p>
+        <h1>Inicio de sesión</h1>
+        <p>Ingresa con tu cuenta de empleado.</p>
+    </section>
+
+    <section class="panel panel-formulario">
+        <h2>Bienvenido a ParkControl</h2>
+
+        <form method="post" class="formulario-cliente">
+            {% csrf_token %}
+
+            {% if formulario.non_field_errors %}
+                <div class="errores">
+                    {{ formulario.non_field_errors }}
+                </div>
+            {% endif %}
+
+            {% for campo in formulario %}
+                <div class="grupo-campo">
+                    <label for="{{ campo.id_for_label }}">
+                        {{ campo.label }}
+                    </label>
+
+                    {{ campo }}
+
+                    {% if campo.errors %}
+                        <div class="errores">
+                            {{ campo.errors }}
+                        </div>
+                    {% endif %}
+                </div>
+            {% endfor %}
+
+            <div class="acciones-formulario">
+                <button type="submit" class="boton">
+                    Iniciar sesión
+                </button>
+            </div>
+        </form>
+    </section>
+</main>
+
+</body>
+</html>

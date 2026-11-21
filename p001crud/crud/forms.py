@@ -359,3 +359,75 @@ class EmpleadoForm(forms.ModelForm):
             )
 
         return identificacion
+
+
+from django.contrib.auth.models import User
+from django.contrib.auth.forms import AuthenticationForm
+
+
+class CuentaEmpleadoForm(forms.Form):
+    empleado = forms.ModelChoiceField(
+        queryset=Empleado.objects.none(),
+        label="Empleado",
+        empty_label="Seleccione un empleado"
+    )
+
+    username = forms.CharField(
+        max_length=150,
+        label="Nombre de usuario"
+    )
+
+    password = forms.CharField(
+        label="Contraseña",
+        widget=forms.PasswordInput
+    )
+
+    confirmar_password = forms.CharField(
+        label="Confirmar contraseña",
+        widget=forms.PasswordInput
+    )
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+        self.fields["empleado"].queryset = (
+            Empleado.objects.filter(
+                estado=True,
+                usuario_django__isnull=True
+            ).order_by("nombre", "apellido")
+        )
+
+    def clean_username(self):
+        username = self.cleaned_data["username"].strip()
+
+        if User.objects.filter(username=username).exists():
+            raise forms.ValidationError(
+                "Este nombre de usuario ya está registrado."
+            )
+
+        return username
+
+    def clean(self):
+        datos = super().clean()
+
+        password = datos.get("password")
+        confirmar = datos.get("confirmar_password")
+
+        if password and confirmar and password != confirmar:
+            raise forms.ValidationError(
+                "Las contraseñas no coinciden."
+            )
+
+        return datos
+
+
+class InicioSesionForm(AuthenticationForm):
+    username = forms.CharField(
+        label="Usuario",
+        max_length=150
+    )
+
+    password = forms.CharField(
+        label="Contraseña",
+        widget=forms.PasswordInput
+    )

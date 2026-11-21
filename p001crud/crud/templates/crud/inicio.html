@@ -9,14 +9,36 @@
     <link rel="stylesheet" href="{% static 'crud/estilos.css' %}">
 </head>
 <body>
-    <header class="encabezado">
-        <div class="contenedor barra">
-            <a class="marca" href="{% url 'inicio' %}">
-                PARK<span>CONTROL</span>
-            </a>
+    
+<header class="encabezado">
+    <div class="contenedor barra">
+
+        <a class="marca" href="{% url 'inicio' %}">
+            PARK<span>CONTROL</span>
+        </a>
+
+        <div class="acciones-encabezado">
+
             <span>Sistema de gestión de parqueadero</span>
+
+            <span class="usuario-actual">
+                👤 {{ request.user.username }}
+            </span>
+
+            <form method="post"
+                  action="{% url 'cerrar_sesion' %}">
+                {% csrf_token %}
+
+                <button type="submit" class="boton-cerrar-sesion">
+                    Cerrar sesión
+                </button>
+            </form>
+
         </div>
-    </header>
+
+    </div>
+</header>
+
 
     <main class="contenedor">
         <section class="bienvenida">
