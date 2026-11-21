@@ -425,3 +425,42 @@ th {
         justify-content: flex-start;
     }
 }
+
+
+/* Botón de descarga del recibo PDF */
+
+.acciones-recibo {
+    display: flex;
+    justify-content: center;
+    margin-top: 25px;
+    margin-bottom: 25px;
+}
+
+.boton-descargar-recibo {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    background: #102e43;
+    color: #ffffff;
+    padding: 15px 26px;
+    border-radius: 10px;
+    text-decoration: none;
+    font-weight: 700;
+    font-size: 15px;
+    box-shadow: 0 5px 15px rgba(16, 46, 67, 0.2);
+    transition: background-color 0.2s, transform 0.2s;
+}
+
+.boton-descargar-recibo:hover {
+    background: #168965;
+    color: #ffffff;
+    transform: translateY(-2px);
+}
+
+@media (max-width: 600px) {
+    .boton-descargar-recibo {
+        width: 100%;
+        text-align: center;
+    }
+}

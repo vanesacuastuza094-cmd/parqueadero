@@ -15,8 +15,26 @@ from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
 from django.db import transaction
 from django.views.decorators.http import require_POST
-
 from .forms import CuentaEmpleadoForm, InicioSesionForm
+
+
+from io import BytesIO
+from xml.sax.saxutils import escape
+
+from django.http import HttpResponse
+from reportlab.lib import colors
+from reportlab.lib.enums import TA_CENTER, TA_LEFT
+from reportlab.lib.styles import ParagraphStyle
+from reportlab.lib.units import mm
+from reportlab.platypus import (
+    SimpleDocTemplate,
+    Paragraph,
+    Spacer,
+    Table,
+    TableStyle,
+    KeepTogether,
+)
+
 
 @login_required
 def inicio(request):
@@ -644,3 +662,390 @@ def crear_cuenta_empleado(request):
         {"formulario": formulario}
     )
 
+
+
+@login_required
+def descargar_recibo(request, ingreso_id):
+    ingreso = get_object_or_404(
+        IngresoSalida.objects.select_related(
+            "vehiculo__tipo_vehiculo",
+            "cliente",
+            "tarifa",
+            "empleado"
+        ),
+        pk=ingreso_id,
+        fecha_salida__isnull=False
+    )
+
+    # FUNCIONES AUXILIARES
+
+    def seguro(valor):
+        return escape(str(valor if valor is not None else ""))
+
+    def fecha_local(valor):
+        if not valor:
+            return "No registrada"
+        return timezone.localtime(valor).strftime("%d/%m/%Y %H:%M")
+
+    def moneda(valor):
+        numero = f"{valor:,.0f}"
+        return "$ " + numero.replace(",", ".")
+
+    def duracion(minutos):
+        horas, minutos_restantes = divmod(int(minutos), 60)
+        if horas:
+            return f"{horas} h {minutos_restantes} min"
+        return f"{minutos_restantes} min"
+
+    calculo = calcular_cobro(
+        ingreso,
+        ingreso.fecha_salida
+    )
+
+    # COLORES DEL RECIBO
+
+    azul = colors.HexColor("#102E43")
+    verde = colors.HexColor("#25B98A")
+    gris = colors.HexColor("#657987")
+    claro = colors.HexColor("#EDF3F5")
+    blanco = colors.white
+
+    # ESTILOS DE TEXTO
+
+    estilo_marca = ParagraphStyle(
+        "MarcaRecibo",
+        fontName="Helvetica-Bold",
+        fontSize=19,
+        leading=23,
+        textColor=blanco,
+        alignment=TA_LEFT
+    )
+
+    estilo_subtitulo = ParagraphStyle(
+        "SubtituloRecibo",
+        fontName="Helvetica",
+        fontSize=7,
+        leading=10,
+        textColor=colors.HexColor("#C5D7DF")
+    )
+
+    estilo_seccion = ParagraphStyle(
+        "SeccionRecibo",
+        fontName="Helvetica-Bold",
+        fontSize=9,
+        leading=13,
+        textColor=azul,
+        spaceBefore=12,
+        spaceAfter=7
+    )
+
+    estilo_etiqueta = ParagraphStyle(
+        "EtiquetaRecibo",
+        fontName="Helvetica",
+        fontSize=7,
+        leading=10,
+        textColor=gris
+    )
+
+    estilo_valor = ParagraphStyle(
+        "ValorRecibo",
+        fontName="Helvetica-Bold",
+        fontSize=9,
+        leading=13,
+        textColor=azul
+    )
+
+    estilo_total = ParagraphStyle(
+        "TotalRecibo",
+        fontName="Helvetica-Bold",
+        fontSize=18,
+        leading=23,
+        alignment=TA_CENTER,
+        textColor=verde
+    )
+
+    estilo_centrado = ParagraphStyle(
+        "CentradoRecibo",
+        fontName="Helvetica",
+        fontSize=8,
+        leading=12,
+        alignment=TA_CENTER,
+        textColor=gris
+    )
+
+    # FUNCIÓN PARA CREAR FILAS
+
+    def dato(etiqueta, valor):
+        return [
+            Paragraph(seguro(etiqueta), estilo_etiqueta),
+            Paragraph(seguro(valor), estilo_valor)
+        ]
+
+    # CONFIGURACIÓN DEL PDF
+
+    buffer = BytesIO()
+
+    documento = SimpleDocTemplate(
+        buffer,
+        pagesize=(100 * mm, 270 * mm),
+        leftMargin=9 * mm,
+        rightMargin=9 * mm,
+        topMargin=8 * mm,
+        bottomMargin=8 * mm,
+        title=f"Recibo {ingreso.numero_recibo}",
+        author="ParkControl"
+    )
+
+    contenido = []
+
+    # =====================================
+    # ENCABEZADO PARKCONTROL
+    # =====================================
+
+    marca = Table(
+        [[
+            [
+                Paragraph("PARKCONTROL", estilo_marca),
+                Paragraph(
+                    "SISTEMA DE GESTION DE PARQUEADERO",
+                    estilo_subtitulo
+                )
+            ]
+        ]],
+        colWidths=[82 * mm]
+    )
+
+    marca.setStyle(TableStyle([
+        ("BACKGROUND", (0, 0), (-1, -1), azul),
+        ("LEFTPADDING", (0, 0), (-1, -1), 12),
+        ("RIGHTPADDING", (0, 0), (-1, -1), 12),
+        ("TOPPADDING", (0, 0), (-1, -1), 14),
+        ("BOTTOMPADDING", (0, 0), (-1, -1), 14),
+    ]))
+
+    contenido.append(marca)
+    contenido.append(Spacer(1, 7 * mm))
+
+    # =====================================
+    # NÚMERO DEL RECIBO
+    # =====================================
+
+    contenido.append(
+        Paragraph(
+            "COMPROBANTE DE PAGO",
+            estilo_seccion
+        )
+    )
+
+    contenido.append(
+        Paragraph(
+            f"<b>{seguro(ingreso.numero_recibo)}</b>",
+            estilo_valor
+        )
+    )
+
+    contenido.append(Spacer(1, 5 * mm))
+
+    # =====================================
+    # DATOS DEL VEHÍCULO Y CLIENTE
+    # =====================================
+
+    contenido.append(
+        Paragraph(
+            "VEHICULO Y CLIENTE",
+            estilo_seccion
+        )
+    )
+
+    datos_vehiculo = [
+        dato(
+            "Placa",
+            ingreso.vehiculo.placa
+        ),
+        dato(
+            "Tipo de vehiculo",
+            ingreso.vehiculo.tipo_vehiculo.nombre
+        ),
+        dato(
+            "Cliente",
+            f"{ingreso.cliente.nombre} "
+            f"{ingreso.cliente.apellido}"
+        ),
+    ]
+
+    tabla_vehiculo = Table(
+        datos_vehiculo,
+        colWidths=[31 * mm, 51 * mm]
+    )
+
+    tabla_vehiculo.setStyle(TableStyle([
+        ("VALIGN", (0, 0), (-1, -1), "TOP"),
+        ("BACKGROUND", (0, 0), (-1, -1), claro),
+        ("TOPPADDING", (0, 0), (-1, -1), 7),
+        ("BOTTOMPADDING", (0, 0), (-1, -1), 7),
+        ("LEFTPADDING", (0, 0), (-1, -1), 8),
+    ]))
+
+    contenido.append(tabla_vehiculo)
+
+    # =====================================
+    # DETALLE DE PERMANENCIA
+    # =====================================
+
+    contenido.append(
+        Paragraph(
+            "DETALLE DE PERMANENCIA",
+            estilo_seccion
+        )
+    )
+
+    datos_tiempo = [
+        dato(
+            "Entrada",
+            fecha_local(ingreso.fecha_entrada)
+        ),
+        dato(
+            "Salida",
+            fecha_local(ingreso.fecha_salida)
+        ),
+        dato(
+            "Duracion",
+            duracion(ingreso.tiempo_total)
+        ),
+        dato(
+            "Modalidad",
+            ingreso.tarifa.tiempo
+        ),
+        dato(
+            "Unidades cobradas",
+            f"{calculo['unidades']} "
+            f"{calculo['descripcion']}"
+        ),
+        dato(
+            "Valor de tarifa",
+            moneda(ingreso.tarifa.valor)
+        ),
+    ]
+
+    tabla_tiempo = Table(
+        datos_tiempo,
+        colWidths=[31 * mm, 51 * mm]
+    )
+
+    tabla_tiempo.setStyle(TableStyle([
+        ("VALIGN", (0, 0), (-1, -1), "TOP"),
+        ("LINEBELOW", (0, 0), (-1, -2), 0.3, claro),
+        ("TOPPADDING", (0, 0), (-1, -1), 5),
+        ("BOTTOMPADDING", (0, 0), (-1, -1), 5),
+        ("LEFTPADDING", (0, 0), (-1, -1), 8),
+    ]))
+
+    contenido.append(tabla_tiempo)
+
+    # =====================================
+    # INFORMACIÓN DEL PAGO
+    # =====================================
+
+    contenido.append(
+        Paragraph(
+            "INFORMACION DEL PAGO",
+            estilo_seccion
+        )
+    )
+
+    contenido.append(
+        Paragraph(
+            "Metodo de pago: "
+            + seguro(
+                ingreso.forma_pago_descripcion
+                or "No especificado"
+            ),
+            estilo_valor
+        )
+    )
+
+    contenido.append(Spacer(1, 6 * mm))
+
+    # =====================================
+    # TOTAL PAGADO
+    # =====================================
+
+    bloque_total = Table(
+        [[
+            [
+                Paragraph(
+                    "TOTAL PAGADO",
+                    ParagraphStyle(
+                        "EtiquetaTotal",
+                        fontName="Helvetica-Bold",
+                        fontSize=9,
+                        leading=13,
+                        textColor=blanco,
+                        alignment=TA_CENTER
+                    )
+                ),
+                Spacer(1, 2 * mm),
+                Paragraph(
+                    seguro(
+                        moneda(ingreso.total_pago)
+                    ),
+                    estilo_total
+                )
+            ]
+        ]],
+        colWidths=[82 * mm]
+    )
+
+    bloque_total.setStyle(TableStyle([
+        ("BACKGROUND", (0, 0), (-1, -1), azul),
+        ("TOPPADDING", (0, 0), (-1, -1), 12),
+        ("BOTTOMPADDING", (0, 0), (-1, -1), 12),
+    ]))
+
+    contenido.append(bloque_total)
+    contenido.append(Spacer(1, 8 * mm))
+
+    # =====================================
+    # PIE DEL RECIBO
+    # =====================================
+
+    contenido.append(
+        KeepTogether([
+            Paragraph(
+                "Atendido por: "
+                + seguro(
+                    f"{ingreso.empleado.nombre} "
+                    f"{ingreso.empleado.apellido}"
+                ),
+                estilo_centrado
+            ),
+            Spacer(1, 3 * mm),
+            Paragraph(
+                "Gracias por confiar en ParkControl",
+                estilo_centrado
+            ),
+            Paragraph(
+                "Comprobante generado automaticamente",
+                estilo_centrado
+            )
+        ])
+    )
+
+    # GENERAR PDF
+
+    documento.build(contenido)
+
+    # RESPUESTA DE DESCARGA
+
+    respuesta = HttpResponse(
+        buffer.getvalue(),
+        content_type="application/pdf"
+    )
+
+    respuesta["Content-Disposition"] = (
+        f'attachment; filename="recibo_{ingreso.pk}.pdf"'
+    )
+
+    buffer.close()
+
+    return respuesta

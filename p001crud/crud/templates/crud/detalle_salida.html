@@ -102,16 +102,26 @@
             </table>
         </div>
 
-        <div class="acciones-formulario">
-            <a href="{% url 'lista_salidas' %}" class="boton">
-                Volver a salidas
-            </a>
+        
+<div class="acciones-formulario">
 
-            <a href="{% url 'lista_ingresos' %}"
-               class="boton boton-secundario">
-                Ver vehículos dentro
-            </a>
-        </div>
+    <a href="{% url 'descargar_recibo' ingreso.id %}"
+       class="boton-descargar-recibo">
+        📄 Descargar recibo PDF
+    </a>
+
+    <a href="{% url 'lista_salidas' %}"
+       class="boton">
+        Volver a salidas
+    </a>
+
+    <a href="{% url 'lista_ingresos' %}"
+       class="boton boton-secundario">
+        Ver vehículos dentro
+    </a>
+
+</div>
+
     </section>
 </main>
 

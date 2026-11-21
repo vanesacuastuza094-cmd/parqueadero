@@ -124,10 +124,18 @@ urlpatterns = [
         name="cerrar_sesion"
     ),
 
+    
     path(
         "empleados/crear-cuenta/",
         views.crear_cuenta_empleado,
         name="crear_cuenta_empleado"
     ),
 
+    path(
+        "salidas/<int:ingreso_id>/recibo/",
+        views.descargar_recibo,
+        name="descargar_recibo"
+    ),
 ]
+
+
