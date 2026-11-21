@@ -1,0 +1,119 @@
+
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1.0">
+    <title>Salida registrada | ParkControl</title>
+    <link rel="stylesheet"
+          href="{% static 'crud/estilos.css' %}">
+</head>
+<body>
+
+<header class="encabezado">
+    <div class="contenedor barra">
+        <a class="marca" href="{% url 'inicio' %}">
+            PARK<span>CONTROL</span>
+        </a>
+
+        <nav>
+            <a class="enlace-nav" href="{% url 'inicio' %}">Inicio</a>
+            <a class="enlace-nav" href="{% url 'lista_ingresos' %}">Ingresos</a>
+            <a class="enlace-nav" href="{% url 'lista_salidas' %}">Salidas</a>
+        </nav>
+    </div>
+</header>
+
+<main class="contenedor">
+    <section class="bienvenida">
+        <p class="subtitulo">OPERACIÓN COMPLETADA</p>
+        <h1>Salida registrada correctamente</h1>
+        <p>
+            El vehículo fue retirado del parqueadero
+            y su cobro quedó registrado.
+        </p>
+    </section>
+
+    <section class="panel panel-formulario">
+        <h2>Resumen del cobro</h2>
+
+        <div class="tabla-scroll">
+            <table>
+                <tbody>
+                    <tr>
+                        <th>Recibo</th>
+                        <td>{{ ingreso.numero_recibo }}</td>
+                    </tr>
+                    <tr>
+                        <th>Placa</th>
+                        <td>{{ ingreso.vehiculo.placa }}</td>
+                    </tr>
+                    <tr>
+                        <th>Propietario</th>
+                        <td>
+                            {{ ingreso.cliente.nombre }}
+                            {{ ingreso.cliente.apellido }}
+                        </td>
+                    </tr>
+                    <tr>
+                        <th>Entrada</th>
+                        <td>
+                            {{ ingreso.fecha_entrada|date:"d/m/Y H:i" }}
+                        </td>
+                    </tr>
+                    <tr>
+                        <th>Salida</th>
+                        <td>
+                            {{ ingreso.fecha_salida|date:"d/m/Y H:i" }}
+                        </td>
+                    </tr>
+                    <tr>
+                        <th>Modalidad</th>
+                        <td>{{ ingreso.tarifa.tiempo }}</td>
+                    </tr>
+                    <tr>
+                        <th>Tiempo transcurrido</th>
+                        <td>{{ ingreso.tiempo_total }} minuto(s)</td>
+                    </tr>
+                    <tr>
+                        <th>Unidades facturadas</th>
+                        <td>
+                            {{ calculo.unidades }}
+                            {{ calculo.descripcion }}
+                        </td>
+                    </tr>
+                    <tr>
+                        <th>Forma de pago</th>
+                        <td>
+                            {{ ingreso.forma_pago_descripcion }}
+                        </td>
+                    </tr>
+                    <tr>
+                        <th>Total pagado</th>
+                        <td>
+                            <strong>
+                                ${{ ingreso.total_pago|floatformat:0 }} COP
+                            </strong>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div class="acciones-formulario">
+            <a href="{% url 'lista_salidas' %}" class="boton">
+                Volver a salidas
+            </a>
+
+            <a href="{% url 'lista_ingresos' %}"
+               class="boton boton-secundario">
+                Ver vehículos dentro
+            </a>
+        </div>
+    </section>
+</main>
+
+</body>
+</html>

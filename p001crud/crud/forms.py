@@ -291,3 +291,16 @@ class IngresoForm(forms.Form):
                 )
 
         return datos
+
+
+class SalidaForm(forms.Form):
+    FORMAS_PAGO = [
+        ("Efectivo", "Efectivo"),
+        ("Transferencia", "Transferencia"),
+        ("Tarjeta", "Tarjeta"),
+    ]
+
+    forma_pago_descripcion = forms.ChoiceField(
+        choices=FORMAS_PAGO,
+        label="Forma de pago"
+    )

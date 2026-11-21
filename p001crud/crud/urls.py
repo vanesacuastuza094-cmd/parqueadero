@@ -74,4 +74,23 @@ urlpatterns = [
         name="registrar_ingreso"
     ),
 
+
+    path(
+        "salidas/",
+        views.lista_salidas,
+        name="lista_salidas"
+    ),
+
+    path(
+        "salidas/registrar/<int:ingreso_id>/",
+        views.registrar_salida,
+        name="registrar_salida"
+    ),
+
+    path(
+        "salidas/detalle/<int:ingreso_id>/",
+        views.detalle_salida,
+        name="detalle_salida"
+    ),
+
 ]

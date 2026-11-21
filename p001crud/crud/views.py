@@ -7,6 +7,10 @@ from django.db import transaction
 from .models import Empleado, Tarifa
 from .forms import IngresoForm
 
+from decimal import Decimal
+from datetime import timedelta
+from .forms import SalidaForm
+
 def inicio(request):
     contexto = {
         "clientes": Cliente.objects.count(),
@@ -307,4 +311,174 @@ def registrar_ingreso(request):
         request,
         "crud/registrar_ingreso.html",
         {"formulario": formulario}
+    )
+
+
+def calcular_cobro(ingreso, fecha_salida=None):
+    """
+    Calcula el cobro usando la tarifa elegida al ingresar.
+
+    Las fracciones de hora, día o mes se cobran
+    como una unidad completa.
+    """
+    if fecha_salida is None:
+        fecha_salida = timezone.now()
+
+    diferencia = fecha_salida - ingreso.fecha_entrada
+
+    segundos = max(0, diferencia.total_seconds())
+
+    # Minutos reales transcurridos, redondeados hacia arriba.
+    minutos = max(1, -(-int(segundos + 0.999999) // 60))
+
+    modalidad = ingreso.tarifa.tiempo.strip().lower()
+
+    if modalidad in ("hora", "horas"):
+        unidades = (minutos + 59) // 60
+        descripcion = "hora(s)"
+
+    elif modalidad in ("dia", "día", "dias", "días"):
+        unidades = (minutos + 1439) // 1440
+        descripcion = "día(s)"
+
+    elif modalidad in ("mes", "meses"):
+        # Para este proyecto: cada mes equivale a 30 días.
+        minutos_mes = 30 * 24 * 60
+        unidades = (minutos + minutos_mes - 1) // minutos_mes
+        descripcion = "mes(es) de 30 días"
+
+    else:
+        raise ValueError(
+            "La modalidad de la tarifa no es válida."
+        )
+
+    total = ingreso.tarifa.valor * Decimal(unidades)
+
+    return {
+        "minutos": minutos,
+        "unidades": unidades,
+        "descripcion": descripcion,
+        "total": total,
+        "fecha_salida": fecha_salida,
+    }
+
+
+def lista_salidas(request):
+    busqueda = request.GET.get("buscar", "").strip()
+
+    ingresos = IngresoSalida.objects.filter(
+        fecha_salida__isnull=True
+    ).select_related(
+        "vehiculo",
+        "cliente",
+        "tarifa"
+    ).order_by("-fecha_entrada")
+
+    if busqueda:
+        ingresos = ingresos.filter(
+            Q(vehiculo__placa__icontains=busqueda)
+            | Q(numero_recibo__icontains=busqueda)
+            | Q(cliente__nombre__icontains=busqueda)
+            | Q(cliente__apellido__icontains=busqueda)
+        )
+
+    return render(
+        request,
+        "crud/salidas.html",
+        {
+            "ingresos_lista": ingresos,
+            "busqueda": busqueda,
+            "total_ingresos": ingresos.count(),
+        }
+    )
+
+
+def registrar_salida(request, ingreso_id):
+    ingreso = get_object_or_404(
+        IngresoSalida.objects.select_related(
+            "vehiculo",
+            "cliente",
+            "tarifa"
+        ),
+        pk=ingreso_id,
+        fecha_salida__isnull=True
+    )
+
+    if request.method == "POST":
+        formulario = SalidaForm(request.POST)
+
+        if formulario.is_valid():
+            with transaction.atomic():
+                # Evitar procesar dos veces una salida.
+                ingreso_actual = IngresoSalida.objects.get(
+                    pk=ingreso_id
+                )
+
+                if ingreso_actual.fecha_salida is not None:
+                    return redirect("lista_salidas")
+
+                resultado = calcular_cobro(
+                    ingreso_actual,
+                    timezone.now()
+                )
+
+                ingreso_actual.fecha_salida = (
+                    resultado["fecha_salida"]
+                )
+                ingreso_actual.tiempo_total = (
+                    resultado["minutos"]
+                )
+                ingreso_actual.total_pago = (
+                    resultado["total"]
+                )
+                ingreso_actual.forma_pago_descripcion = (
+                    formulario.cleaned_data[
+                        "forma_pago_descripcion"
+                    ]
+                )
+                ingreso_actual.estado = False
+
+                ingreso_actual.save()
+
+            return redirect("detalle_salida", ingreso_id=ingreso_id)
+    else:
+        formulario = SalidaForm()
+
+    resultado = calcular_cobro(ingreso)
+
+    return render(
+        request,
+        "crud/registrar_salida.html",
+        {
+            "ingreso": ingreso,
+            "formulario": formulario,
+            "calculo": resultado,
+        }
+    )
+
+
+def detalle_salida(request, ingreso_id):
+    ingreso = get_object_or_404(
+        IngresoSalida.objects.select_related(
+            "vehiculo",
+            "cliente",
+            "tarifa",
+            "empleado"
+        ),
+        pk=ingreso_id,
+        fecha_salida__isnull=False
+    )
+
+    calculo = calcular_cobro(
+        ingreso,
+        ingreso.fecha_salida
+    )
+
+    return render(
+        request,
+        "crud/detalle_salida.html",
+        {
+            "ingreso": ingreso,
+            "calculo": calculo,
+        }
     )

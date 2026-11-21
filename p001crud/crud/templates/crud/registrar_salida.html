@@ -1,0 +1,140 @@
+
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1.0">
+    <title>Registrar salida | ParkControl</title>
+    <link rel="stylesheet"
+          href="{% static 'crud/estilos.css' %}">
+</head>
+<body>
+
+<header class="encabezado">
+    <div class="contenedor barra">
+        <a class="marca" href="{% url 'inicio' %}">
+            PARK<span>CONTROL</span>
+        </a>
+
+        <nav>
+            <a class="enlace-nav" href="{% url 'inicio' %}">Inicio</a>
+            <a class="enlace-nav" href="{% url 'lista_ingresos' %}">Ingresos</a>
+            <a class="enlace-nav" href="{% url 'lista_salidas' %}">Salidas</a>
+        </nav>
+    </div>
+</header>
+
+<main class="contenedor">
+    <section class="bienvenida">
+        <p class="subtitulo">CONTROL DEL PARQUEADERO</p>
+        <h1>Registrar salida</h1>
+        <p>
+            Revisa el valor a pagar y confirma
+            la salida del vehículo.
+        </p>
+    </section>
+
+    <section class="panel panel-formulario">
+        <h2>Información del vehículo</h2>
+
+        <div class="tabla-scroll">
+            <table>
+                <tbody>
+                    <tr>
+                        <th>Número de recibo</th>
+                        <td>{{ ingreso.numero_recibo }}</td>
+                    </tr>
+                    <tr>
+                        <th>Placa</th>
+                        <td>{{ ingreso.vehiculo.placa }}</td>
+                    </tr>
+                    <tr>
+                        <th>Propietario</th>
+                        <td>
+                            {{ ingreso.cliente.nombre }}
+                            {{ ingreso.cliente.apellido }}
+                        </td>
+                    </tr>
+                    <tr>
+                        <th>Fecha de entrada</th>
+                        <td>
+                            {{ ingreso.fecha_entrada|date:"d/m/Y H:i" }}
+                        </td>
+                    </tr>
+                    <tr>
+                        <th>Modalidad</th>
+                        <td>{{ ingreso.tarifa.tiempo }}</td>
+                    </tr>
+                    <tr>
+                        <th>Tarifa por unidad</th>
+                        <td>
+                            ${{ ingreso.tarifa.valor|floatformat:0 }} COP
+                        </td>
+                    </tr>
+                    <tr>
+                        <th>Unidades a cobrar</th>
+                        <td>
+                            {{ calculo.unidades }}
+                            {{ calculo.descripcion }}
+                        </td>
+                    </tr>
+                    <tr>
+                        <th>Total estimado</th>
+                        <td>
+                            <strong>
+                                ${{ calculo.total|floatformat:0 }} COP
+                            </strong>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <p>
+            El valor definitivo se calculará nuevamente
+            al confirmar la salida.
+        </p>
+
+        <form method="post" class="formulario-cliente">
+            {% csrf_token %}
+
+            {% if formulario.non_field_errors %}
+                <div class="errores">
+                    {{ formulario.non_field_errors }}
+                </div>
+            {% endif %}
+
+            {% for campo in formulario %}
+                <div class="grupo-campo">
+                    <label for="{{ campo.id_for_label }}">
+                        {{ campo.label }}
+                    </label>
+
+                    {{ campo }}
+
+                    {% if campo.errors %}
+                        <div class="errores">
+                            {{ campo.errors }}
+                        </div>
+                    {% endif %}
+                </div>
+            {% endfor %}
+
+            <div class="acciones-formulario">
+                <button type="submit" class="boton">
+                    Confirmar salida y cobro
+                </button>
+
+                <a href="{% url 'lista_salidas' %}"
+                   class="boton boton-secundario">
+                    Cancelar
+                </a>
+            </div>
+        </form>
+    </section>
+</main>
+
+</body>
+</html>
