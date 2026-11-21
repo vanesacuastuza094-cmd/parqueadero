@@ -304,3 +304,58 @@ class SalidaForm(forms.Form):
         choices=FORMAS_PAGO,
         label="Forma de pago"
     )
+
+
+from .models import Empleado
+
+
+class EmpleadoForm(forms.ModelForm):
+    class Meta:
+        model = Empleado
+        fields = [
+            "identificacion",
+            "nombre",
+            "apellido",
+            "telefono",
+            "rol",
+            "estado",
+        ]
+
+        labels = {
+            "identificacion": "Número de identificación",
+            "nombre": "Nombre",
+            "apellido": "Apellido",
+            "telefono": "Teléfono",
+            "rol": "Cargo o rol",
+            "estado": "Empleado activo",
+        }
+
+        widgets = {
+            "identificacion": forms.TextInput(
+                attrs={"placeholder": "Número de identificación"}
+            ),
+            "nombre": forms.TextInput(
+                attrs={"placeholder": "Nombre del empleado"}
+            ),
+            "apellido": forms.TextInput(
+                attrs={"placeholder": "Apellido del empleado"}
+            ),
+            "telefono": forms.TextInput(
+                attrs={"placeholder": "Número de teléfono"}
+            ),
+            "rol": forms.TextInput(
+                attrs={"placeholder": "Ejemplo: Operador"}
+            ),
+        }
+
+    def clean_identificacion(self):
+        identificacion = self.cleaned_data["identificacion"].strip()
+
+        if Empleado.objects.filter(
+            identificacion=identificacion
+        ).exclude(pk=self.instance.pk).exists():
+            raise forms.ValidationError(
+                "Ya existe un empleado con esta identificación."
+            )
+
+        return identificacion

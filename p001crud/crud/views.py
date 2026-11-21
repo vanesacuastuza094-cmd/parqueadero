@@ -1,12 +1,11 @@
 
 from django.shortcuts import render, redirect, get_object_or_404
 from .models import Cliente, Vehiculo, IngresoSalida, TipoVehiculo, Tarifa
-from .forms import ClienteForm, VehiculoForm, TarifaForm
+from .forms import ClienteForm, VehiculoForm, TarifaForm, EmpleadoForm
 from django.utils import timezone
 from django.db import transaction
 from .models import Empleado, Tarifa
 from .forms import IngresoForm
-
 from decimal import Decimal
 from datetime import timedelta
 from .forms import SalidaForm
@@ -480,5 +479,77 @@ def detalle_salida(request, ingreso_id):
         {
             "ingreso": ingreso,
             "calculo": calculo,
+        }
+    )
+
+
+def lista_empleados(request):
+    busqueda = request.GET.get("buscar", "").strip()
+
+    empleados = Empleado.objects.all().order_by(
+        "nombre", "apellido"
+    )
+
+    if busqueda:
+        empleados = empleados.filter(
+            Q(identificacion__icontains=busqueda)
+            | Q(nombre__icontains=busqueda)
+            | Q(apellido__icontains=busqueda)
+            | Q(telefono__icontains=busqueda)
+            | Q(rol__icontains=busqueda)
+        )
+
+    return render(
+        request,
+        "crud/empleados.html",
+        {
+            "empleados_lista": empleados,
+            "busqueda": busqueda,
+            "total_empleados": empleados.count(),
+        }
+    )
+
+
+def registrar_empleado(request):
+    if request.method == "POST":
+        formulario = EmpleadoForm(request.POST)
+
+        if formulario.is_valid():
+            formulario.save()
+            return redirect("lista_empleados")
+    else:
+        formulario = EmpleadoForm()
+
+    return render(
+        request,
+        "crud/registrar_empleado.html",
+        {"formulario": formulario}
+    )
+
+
+def editar_empleado(request, empleado_id):
+    empleado = get_object_or_404(
+        Empleado,
+        pk=empleado_id
+    )
+
+    if request.method == "POST":
+        formulario = EmpleadoForm(
+            request.POST,
+            instance=empleado
+        )
+
+        if formulario.is_valid():
+            formulario.save()
+            return redirect("lista_empleados")
+    else:
+        formulario = EmpleadoForm(instance=empleado)
+
+    return render(
+        request,
+        "crud/editar_empleado.html",
+        {
+            "formulario": formulario,
+            "empleado": empleado,
         }
     )

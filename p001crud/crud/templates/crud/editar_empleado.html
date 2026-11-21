@@ -1,0 +1,79 @@
+
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Editar empleado | ParkControl</title>
+    <link rel="stylesheet" href="{% static 'crud/estilos.css' %}">
+</head>
+<body>
+
+<header class="encabezado">
+    <div class="contenedor barra">
+        <a class="marca" href="{% url 'inicio' %}">
+            PARK<span>CONTROL</span>
+        </a>
+
+        <nav>
+            <a class="enlace-nav" href="{% url 'inicio' %}">Inicio</a>
+            <a class="enlace-nav" href="{% url 'lista_empleados' %}">Empleados</a>
+        </nav>
+    </div>
+</header>
+
+<main class="contenedor">
+    <section class="bienvenida">
+        <p class="subtitulo">ADMINISTRACIÓN</p>
+        <h1>Editar empleado</h1>
+        <p>
+            Actualiza la información de
+            {{ empleado.nombre }} {{ empleado.apellido }}.
+        </p>
+    </section>
+
+    <section class="panel panel-formulario">
+        <h2>Datos del empleado</h2>
+
+        <form method="post" class="formulario-cliente">
+            {% csrf_token %}
+
+            {% if formulario.non_field_errors %}
+                <div class="errores">
+                    {{ formulario.non_field_errors }}
+                </div>
+            {% endif %}
+
+            {% for campo in formulario %}
+                <div class="grupo-campo">
+                    <label for="{{ campo.id_for_label }}">
+                        {{ campo.label }}
+                    </label>
+
+                    {{ campo }}
+
+                    {% if campo.errors %}
+                        <div class="errores">
+                            {{ campo.errors }}
+                        </div>
+                    {% endif %}
+                </div>
+            {% endfor %}
+
+            <div class="acciones-formulario">
+                <button type="submit" class="boton">
+                    Guardar cambios
+                </button>
+
+                <a href="{% url 'lista_empleados' %}"
+                   class="boton boton-secundario">
+                    Cancelar
+                </a>
+            </div>
+        </form>
+    </section>
+</main>
+
+</body>
+</html>

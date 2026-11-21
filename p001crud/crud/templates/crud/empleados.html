@@ -1,0 +1,133 @@
+
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Empleados | ParkControl</title>
+    <link rel="stylesheet" href="{% static 'crud/estilos.css' %}">
+</head>
+<body>
+
+<header class="encabezado">
+    <div class="contenedor barra">
+        <a class="marca" href="{% url 'inicio' %}">
+            PARK<span>CONTROL</span>
+        </a>
+
+        <nav>
+            <a class="enlace-nav" href="{% url 'inicio' %}">Inicio</a>
+            <a class="enlace-nav" href="{% url 'lista_clientes' %}">Clientes</a>
+            <a class="enlace-nav" href="{% url 'lista_vehiculos' %}">Vehículos</a>
+            <a class="enlace-nav" href="{% url 'lista_tarifas' %}">Tarifas</a>
+            <a class="enlace-nav" href="{% url 'lista_ingresos' %}">Ingresos</a>
+            <a class="enlace-nav" href="{% url 'lista_salidas' %}">Salidas</a>
+            <a class="enlace-nav" href="{% url 'lista_empleados' %}">Empleados</a>
+        </nav>
+    </div>
+</header>
+
+<main class="contenedor">
+    <section class="bienvenida">
+        <p class="subtitulo">ADMINISTRACIÓN</p>
+        <h1>Gestión de empleados</h1>
+        <p>
+            Administra los empleados responsables
+            de las operaciones del parqueadero.
+        </p>
+    </section>
+
+    <section class="panel">
+        <div class="cabecera-panel">
+            <h2>Empleados registrados</h2>
+
+            <div class="acciones-clientes">
+                <span class="contador">
+                    {{ total_empleados }} resultado(s)
+                </span>
+
+                <a href="{% url 'registrar_empleado' %}"
+                   class="boton">
+                    + Nuevo empleado
+                </a>
+            </div>
+        </div>
+
+        <form method="get" class="formulario-busqueda">
+            <input
+                type="text"
+                name="buscar"
+                value="{{ busqueda }}"
+                placeholder="Buscar nombre, identificación o cargo"
+                aria-label="Buscar empleados"
+            >
+
+            <button type="submit" class="boton">
+                Buscar
+            </button>
+
+            <a href="{% url 'lista_empleados' %}"
+               class="boton boton-secundario">
+                Limpiar
+            </a>
+        </form>
+
+        <div class="tabla-scroll">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Identificación</th>
+                        <th>Nombre completo</th>
+                        <th>Teléfono</th>
+                        <th>Cargo</th>
+                        <th>Estado</th>
+                        <th>Acciones</th>
+                    </tr>
+                </thead>
+
+                <tbody>
+                    {% for empleado in empleados_lista %}
+                    <tr>
+                        <td>{{ empleado.identificacion }}</td>
+
+                        <td>
+                            {{ empleado.nombre }}
+                            {{ empleado.apellido }}
+                        </td>
+
+                        <td>{{ empleado.telefono }}</td>
+                        <td>{{ empleado.rol }}</td>
+
+                        <td>
+                            {% if empleado.estado %}
+                                Activo
+                            {% else %}
+                                Inactivo
+                            {% endif %}
+                        </td>
+
+                        <td>
+                            <a
+                                href="{% url 'editar_empleado' empleado.pk %}"
+                                class="boton boton-editar">
+                                Editar
+                            </a>
+                        </td>
+                    </tr>
+
+                    {% empty %}
+                    <tr>
+                        <td colspan="6">
+                            No se encontraron empleados.
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </section>
+</main>
+
+</body>
+</html>

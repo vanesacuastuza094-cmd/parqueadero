@@ -93,4 +93,23 @@ urlpatterns = [
         name="detalle_salida"
     ),
 
+
+    path(
+        "empleados/",
+        views.lista_empleados,
+        name="lista_empleados"
+    ),
+
+    path(
+        "empleados/registrar/",
+        views.registrar_empleado,
+        name="registrar_empleado"
+    ),
+
+    path(
+        "empleados/editar/<int:empleado_id>/",
+        views.editar_empleado,
+        name="editar_empleado"
+    ),
+
 ]
