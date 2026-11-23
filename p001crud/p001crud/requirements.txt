@@ -1,2 +1,5 @@
 
+Django==6.0.4
 reportlab==5.1.0
+selenium==4.53.0
+
